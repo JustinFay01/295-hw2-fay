@@ -11,7 +11,7 @@ if(@ARGV == 1){
 my $file = $ARGV[0];
 my $commit;
 chomp(@objects = `git log -1 --name-only $file`);
-for(my $i = 0; $i < $#objects; $i++){
+for(my $i = 0; $i < @objects; $i++){
     my @val = split / /, $objects[$i];
     if($i == 0){
         $commit = $val[1];
