@@ -16,6 +16,4 @@ for my $key (keys %emailCount){
    chomp(my @oldestDate = `git log --date=unix --pretty=%cd --author=$key --reverse`);
    chomp(my $recentDate = `git log --date=unix --pretty=%cd --author=$key -1`);
    print($key . ", " . $emailCount{$key} . ", " . (scalar localtime $oldestDate[0]) . ", " . (scalar localtime $recentDate) . "\n")
-
-
 }
