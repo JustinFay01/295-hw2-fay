@@ -1,32 +1,49 @@
 use strict;
 use warnings;
 
-my @objects;
-
 if(@ARGV == 1){ 
-my $file = $ARGV[0];
-my $commit;
-#Find objects associated with file
-chomp(@objects = `git log -1 --name-only $file`);
-#find commit and author
-for(my $i = 0; $i < @objects; $i++){
-    my @val = split / /, $objects[$i];
-    if($i == 0){
-        $commit = $val[1];
-    } 
-    elsif ($i == 1) {
-        print($objects[$i] . "\n\n"); 
-    }
-}
-#print file name and sha
-print("SHA-1 for " . $file . ": " . $commit . "\n\n");
-#print file
-chomp(my @print = `cat $file`);
-for my $line (@print){
-print($line . "\n");
+# file name check
+unless (-e $ARGV[0]){
+    print("File not found!\n");
+    exit -1;
+  }
+
+# Open refs HEAD to view the current branch
+# Chomp refs HEAD file
+open(my $br, ".git/HEAD");
+my $branch  = <$br>;
+$branch = substr($branch, 16); #get current branch
+
+# Open refs head of branch we just found
+open(my $fh, ".git/refs/heads/" . $branch) or die "Couldn't open file file.txt, $!";
+my $SHA = <$fh>; # Obtained the most recent commit on this branch
+
+# git cat-file -p the commit inside the correct branch
+chomp(my @commitFiles = `git cat-file -p $SHA`);
+my @firstLine = split(" ", $commitFiles[0]);
+my $treeSHA = $firstLine[1]; # Got tree sha
+
+my @authorLines = split(" ", $commitFiles[2]);
+my $author = join(" ", $authorLines[1], $authorLines[2], $authorLines[3]);
+$author =~ tr/[<>]//d; # remove <> from string
+# got the author
+
+my $blobLine;
+chomp(my @files = `git cat-file -p $treeSHA`);
+# find the file that matches the input, using string matching =~
+foreach (@files){
+    if($_ =~ /$ARGV[0]/){ $blobLine = $_ } # match to file input
 }
 
+# git cat-file -p the blob associated with the file
+my @blobList = split(" ", $blobLine);
+my $blob;
+if($#blobList > 2) { $blob = $blobList[2]; }  #Location of blob SHA
+
+#Final print format
+print("Author: " . $author . "\n\nSHA-1 for " . $ARGV[0] . ": " . $SHA . "\n" . 
+      `git cat-file -p $blob` . "\n");
 } else {
-    print("Incorrect Command. \n");
+    print("Incorrect Command. Need (only) one input.\n");
     exit -1;
 }
