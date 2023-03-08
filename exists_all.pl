@@ -4,7 +4,7 @@ use warnings;
 if($#ARGV >= 1) {
     my $file = $ARGV[0];
     my $found = 0;
-    unless (-e $file){ print("File not found.\n"); exit -2; } 
+    unless (-e $file){ print("File not found.\n"); exit -1; } 
 
     # cycle through input commits
     for (my $i = 1; $i < @ARGV; $i++) {
@@ -15,7 +15,7 @@ if($#ARGV >= 1) {
         if($type ne "commit") {
             if($type eq "tree") { print($commit . " is a ". $type . " object, not a commit object.\n"); }
             else                { print($commit . " does not represent a valid Git object\n"); }
-            exit -2;
+            exit -1;
         } else {
             # git cat file the given commit
             chomp(my @commitFiles = `git cat-file -p $commit`);
@@ -28,8 +28,12 @@ if($#ARGV >= 1) {
             foreach(@files){ if($_ =~ /$ARGV[0]/) { $found++ }; } # find file
         }
     }
-    if($found == $#ARGV){ print("True\n"); exit 0;} 
-    else { print("False\n"); 
-           exit 1; }
+    if($found == $#ARGV){ 
+        print("True\n"); 
+        exit 0;
+        } else { 
+            print("False\n"); 
+            exit 1; 
+        }
 } else { print("Enter one or more commit SHA's\n"); 
            exit -1; }
